@@ -34,14 +34,19 @@ signal.signal(signal.SIGINT, signal_handler)
 def water_level(marginsafety=0):
     reads[0] = reads[0] + 1
     time.sleep(2)
+    safetime = time.time()
     GPIO.output(trigger, True)
     time.sleep(0.00001)
     GPIO.output(trigger, False)
     while GPIO.input(echo) == 0:
-        pass
+        if time.time() > safetime + 60:
+            discord_message("got stuck waiting for the echo...")
+            return water_level()
     start = time.time()
     while GPIO.input(echo) == 1:
-        pass
+        if time.time() > safetime + 60:
+            discord_message("got stuck listening to the echo...")
+            return water_level()
     stop = time.time()
     elapsed = stop - start
     distance = elapsed * 34000
@@ -138,3 +143,4 @@ if __name__ == '__main__':
             for i in (updm, updn, mss):
                 discord_message(i)
             statustime = time.time()
+
